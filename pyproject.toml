@@ -19,5 +19,13 @@ dependencies = [
   "httpx>=0.27"
 ]
 
+[project.optional-dependencies]
+test = [
+  "pytest>=8"
+]
+
 [tool.setuptools.packages.find]
-where = ["src"]
+include = ["paveclient"]
+
+[tool.setuptools.package-data]
+paveclient = ["py.typed"]

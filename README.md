@@ -26,3 +26,6 @@ pip install pavedb-client pavedb
 
 The PaveDB server repository remains the source of truth for the OpenAPI
 contract.
+
+The HTTP client mirrors the local `Client -> Collection` handle shape exposed
+by the PaveDB package.
