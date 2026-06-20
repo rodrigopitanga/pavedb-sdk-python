@@ -8,7 +8,7 @@ import json
 import httpx
 import pytest
 
-from paveclient import (
+from pavesdk import (
     HttpClient,
     InvalidRequest,
     LocalClientUnavailable,
@@ -95,7 +95,24 @@ def test_collection_surface_maps_to_http_endpoints(tmp_path):
             )
         if request.method == "POST" and request.url.path.endswith("/search"):
             body = json.loads(request.content)
-            assert body == {"q": "captain", "k": 3, "filters": {"kind": "note"}}
+            if body["q"] == "local":
+                assert body == {
+                    "q": "local",
+                    "k": 1,
+                }
+            elif body["q"] == "no-common":
+                assert body == {
+                    "q": "no-common",
+                    "k": 1,
+                    "include_common": False,
+                }
+            else:
+                assert body == {
+                    "q": "captain",
+                    "k": 3,
+                    "include_common": True,
+                    "filters": {"kind": "note"},
+                }
             return httpx.Response(
                 200,
                 json={
@@ -143,7 +160,18 @@ def test_collection_surface_maps_to_http_endpoints(tmp_path):
             csv_options={"has_header": "yes"},
         )["docid"] == "file-1"
         assert books.add_many(["A", ("B", "note-2", None)])["succeeded"] == 2
-        assert books.search("captain", k=3, filters={"kind": "note"})[0]["id"] == "r1"
+        assert books.search(
+            "captain",
+            k=3,
+            filters={"kind": "note"},
+            include_common=True,
+        )[0]["id"] == "r1"
+        assert books.search("local", k=1)[0]["id"] == "r1"
+        assert books.search(
+            "no-common",
+            k=1,
+            include_common=False,
+        )[0]["id"] == "r1"
         assert books.list_documents() == [{"docid": "note-1"}]
         assert books.get("note-1")["docid"] == "note-1"
         assert books.detail()["doc_count"] == 1

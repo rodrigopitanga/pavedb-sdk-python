@@ -2,16 +2,17 @@
 # SPDX-License-Identifier: Apache-2.0
 
 [build-system]
-requires = ["setuptools>=69", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pavedb-client"
-version = "0.1.0"
-description = "Python client for PaveDB"
+name = "pavedb-sdk"
+version = "0.1.1"
+description = "Python SDK for the PaveDB /v1 API"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { file = "LICENSE" }
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 authors = [
   { name = "Flowlexi", email = "pavedb@flowlexi.com" }
 ]
@@ -25,7 +26,13 @@ test = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["paveclient"]
+include = ["pavesdk*"]
 
 [tool.setuptools.package-data]
-paveclient = ["py.typed"]
+pavesdk = ["py.typed"]
+"pavesdk.examples" = ["README.md"]
+
+[project.urls]
+Homepage = "https://gitlab.com/flowlexi/pavedb-sdk-python"
+Source = "https://gitlab.com/flowlexi/pavedb-sdk-python"
+Mirror = "https://github.com/rodrigopitanga/pavedb-sdk-python"

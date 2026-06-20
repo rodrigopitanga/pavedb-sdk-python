@@ -1,0 +1,3 @@
+recursive-include pavesdk/examples *
+recursive-include demo *
+global-exclude __pycache__ *.py[cod]
