@@ -1,0 +1,23 @@
+# (C) 2026 Rodrigo Rodrigues da Silva <rodrigo@flowlexi.com>
+# SPDX-License-Identifier: Apache-2.0
+
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pavedb-client"
+version = "0.1.0"
+description = "Python client for PaveDB"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Flowlexi", email = "pavedb@flowlexi.com" }
+]
+dependencies = [
+  "httpx>=0.27"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
