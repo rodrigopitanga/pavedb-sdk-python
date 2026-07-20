@@ -236,3 +236,44 @@ def test_instance_methods_and_error_mapping(tmp_path):
         with pytest.raises(PaveError) as generic:
             db.collection("boom").detail()
         assert generic.value.code == "http_500"
+
+
+def test_collection_vector_methods_map_to_existing_payloads():
+    vector = [0.1, 0.2, 0.3]
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)
+        if request.url.path.endswith("/documents"):
+            assert body == {
+                "vector": vector,
+                "docid": "vec-1",
+                "metadata": {"kind": "vector"},
+            }
+            return httpx.Response(201, json={"ok": True, "docid": "vec-1"})
+        if request.url.path.endswith("/documents:batch"):
+            assert body == {
+                "documents": [
+                    {"vector": vector, "docid": "vec-2", "metadata": None},
+                    {"vector": vector, "docid": "vec-3", "metadata": None},
+                ]
+            }
+            return httpx.Response(201, json={"ok": True, "succeeded": 2})
+        assert request.url.path.endswith("/search")
+        assert body == {"v": vector, "k": 2}
+        return httpx.Response(
+            200,
+            json={"ok": True, "matches": [{"id": "vec-1"}]},
+        )
+
+    with _client(handler) as db:
+        collection = db.collection("vectors")
+        assert collection.add(
+            vector=vector,
+            docid="vec-1",
+            metadata={"kind": "vector"},
+        )["docid"] == "vec-1"
+        assert collection.add_many([
+            {"vector": vector, "docid": "vec-2"},
+            (vector, "vec-3"),
+        ])['succeeded'] == 2
+        assert collection.search(vector=vector, k=2) == [{"id": "vec-1"}]

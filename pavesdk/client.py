@@ -281,12 +281,18 @@ class HttpClient(BaseClient):
         self,
         tenant: str,
         collection: str,
-        text: str,
+        text: str | None = None,
         *,
+        vector: list[float] | None = None,
         docid: str | None = None,
         metadata: Metadata | None = None,
     ) -> JsonMap:
-        body = {"text": text, "docid": docid, "metadata": metadata}
+        body = {
+            "text": text,
+            "vector": vector,
+            "docid": docid,
+            "metadata": metadata,
+        }
         return self._json(
             "POST",
             f"/collections/{segment(tenant)}/{segment(collection)}/documents",
@@ -309,13 +315,15 @@ class HttpClient(BaseClient):
         self,
         tenant: str,
         collection: str,
-        q: str,
+        q: str | None = None,
         k: int = 5,
         *,
+        vector: list[float] | None = None,
         filters: FilterSpec | None = None,
         include_common: bool | None = None,
     ) -> list[JsonMap]:
-        body: JsonMap = {"q": q, "k": k}
+        body: JsonMap = {"q": q, "v": vector, "k": k}
+        body = {key: value for key, value in body.items() if value is not None}
         if filters is not None:
             body["filters"] = filters
         if include_common is not None:

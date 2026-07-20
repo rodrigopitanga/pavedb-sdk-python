@@ -129,8 +129,9 @@ class BaseClient:
         self,
         tenant: str,
         collection: str,
-        text: str,
+        text: str | None = None,
         *,
+        vector: list[float] | None = None,
         docid: str | None = None,
         metadata: Metadata | None = None,
     ) -> JsonMap:
@@ -148,9 +149,10 @@ class BaseClient:
         self,
         tenant: str,
         collection: str,
-        q: str,
+        q: str | None = None,
         k: int = 5,
         *,
+        vector: list[float] | None = None,
         filters: FilterSpec | None = None,
         include_common: bool | None = None,
     ) -> list[JsonMap]:
@@ -254,8 +256,9 @@ class Collection:
 
     def add(
         self,
-        text: str,
+        text: str | None = None,
         *,
+        vector: list[float] | None = None,
         docid: str | None = None,
         metadata: Metadata | None = None,
     ) -> JsonMap:
@@ -263,6 +266,7 @@ class Collection:
             self.tenant,
             self.name,
             text,
+            vector=vector,
             docid=docid,
             metadata=metadata,
         )
@@ -272,9 +276,10 @@ class Collection:
 
     def search(
         self,
-        q: str,
+        q: str | None = None,
         k: int = 5,
         *,
+        vector: list[float] | None = None,
         filters: FilterSpec | None = None,
         include_common: bool | None = None,
     ) -> list[JsonMap]:
@@ -283,6 +288,7 @@ class Collection:
             self.name,
             q,
             k,
+            vector=vector,
             filters=filters,
             include_common=include_common,
         )
