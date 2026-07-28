@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import json
+from importlib.metadata import version
 
 import httpx
+import pavesdk
 import pytest
 
 from pavesdk import (
@@ -16,6 +18,10 @@ from pavesdk import (
     PaveError,
     connect,
 )
+
+
+def test_package_version_matches_distribution():
+    assert pavesdk.__version__ == version("pavedb-sdk")
 
 
 def _client(handler):

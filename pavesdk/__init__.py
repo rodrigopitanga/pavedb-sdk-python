@@ -3,6 +3,8 @@
 
 """Python SDK package for PaveDB."""
 
+from importlib.metadata import version as _distribution_version
+
 from .batch import batch_item
 from .client import HttpClient, connect
 from .compat import PAVEDB_API_PREFIX, PAVEDB_API_VERSION
@@ -33,4 +35,4 @@ __all__ = [
     "connect",
 ]
 
-__version__ = "0.1.1"
+__version__ = _distribution_version("pavedb-sdk")
