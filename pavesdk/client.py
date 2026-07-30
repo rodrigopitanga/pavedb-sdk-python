@@ -31,7 +31,10 @@ def connect(
     tenant: str = "default",
     timeout: float | httpx.Timeout = 30.0,
 ) -> HttpClient | Any:
-    """Connect over HTTP, or dispatch to an installed local provider."""
+    """Connect to an HTTP server or an installed local PaveDB provider.
+
+    Omit ``target`` for an ephemeral local store. HTTP URLs return ``HttpClient``.
+    """
     if target is None:
         return _connect_local(target, tenant=tenant)
 
@@ -89,7 +92,7 @@ def segment(value: str) -> str:
 
 
 class HttpClient(BaseClient):
-    """Synchronous HTTP transport."""
+    """Synchronous client for the PaveDB ``/v1`` HTTP API."""
 
     def __init__(
         self,
@@ -101,6 +104,7 @@ class HttpClient(BaseClient):
         headers: Mapping[str, str] | None = None,
         http_client: httpx.Client | None = None,
     ) -> None:
+        """Create a client with optional bearer authentication and transport."""
         self.base_url = base_url.rstrip("/")
         self.tenant = tenant
         self._prefix = "" if self.base_url.endswith("/v1") else "/v1"
@@ -120,6 +124,7 @@ class HttpClient(BaseClient):
             self._client.headers.update(request_headers)
 
     def close(self) -> None:
+        """Close the HTTP connection pool when this client owns it."""
         if self._closed:
             return
         if self._owns_client:

@@ -68,6 +68,19 @@ python -m pavesdk.examples.observability
 The SDK checkout also includes `demo/20k_leagues.txt`, which the examples use
 via a hardcoded relative path.
 
+## Generated API Reference
+
+The source distribution includes its generated API reference, examples index,
+and generator. From a checkout or unpacked SDK sdist, regenerate them with:
+
+```bash
+python docs/generate_reference.py
+```
+
+`gmake docs-check` verifies that the checked-in Markdown is current, every
+indexed example imports, and each one keeps its `python -m pavesdk.examples...`
+command.
+
 ## HTTP Client
 
 ```python

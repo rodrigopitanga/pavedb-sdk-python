@@ -25,6 +25,8 @@ help:
 	@echo "  install-dev  Install test/build tools"
 	@echo ""
 	@echo "Verify:"
+	@echo "  docs         Generate API and examples reference"
+	@echo "  docs-check   Verify generated docs and example imports"
 	@echo "  test         Compile package and run pytest"
 	@echo "  check        Run tests, build package artifacts"
 	@echo ""
@@ -64,13 +66,21 @@ install-dev: venv
 	$(PIP_BIN) install -q -e ".[test]"
 	@echo "Dev/test/build tools installed."
 
+.PHONY: docs
+docs:
+	$(PYTHON) docs/generate_reference.py
+
+.PHONY: docs-check
+docs-check: install-dev
+	PYTHONPATH=. $(PYTHON_BIN) docs/generate_reference.py --check
+
 .PHONY: test
-test: install-dev
+test: docs-check
 	PYTHONPATH=. $(PYTHON_BIN) -m compileall -q $(PKG_IMPORT)
 	PYTHONPATH=. $(PYTHON_BIN) -m pytest -q
 
 .PHONY: build
-build: install-dev
+build: docs-check
 	rm -rf $(DIST_DIR) $(BUILD_DIR)
 	$(PYTHON_BIN) -m build --sdist --wheel --outdir $(DIST_DIR) --no-isolation
 	$(PYTHON_BIN) -m twine check $(DIST_DIR)/*

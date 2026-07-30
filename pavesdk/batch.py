@@ -12,6 +12,7 @@ JsonMap = dict[str, Any]
 
 
 def batch_item(document: object) -> JsonMap:
+    """Normalize one text or vector item for ``Collection.add_many``."""
     if isinstance(document, str):
         return {"text": document}
     if isinstance(document, Mapping):

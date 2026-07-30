@@ -15,18 +15,21 @@ FilterSpec = dict[str, Any]
 
 
 class BaseClient:
-    """Transport-neutral public client surface."""
+    """Transport-neutral client surface shared by HTTP and local providers."""
 
     tenant: str
 
     def __enter__(self) -> BaseClient:
+        """Return this open client for use in a context manager."""
         self._ensure_open()
         return self
 
     def __exit__(self, *_exc: object) -> None:
+        """Close this client when its context manager exits."""
         self.close()
 
     def close(self) -> None:
+        """Release resources held by this client."""
         raise NotImplementedError
 
     def _ensure_open(self) -> None:
@@ -46,6 +49,7 @@ class BaseClient:
         embed_model: str | None = None,
         embedder_config: Mapping[str, Any] | None = None,
     ) -> Collection:
+        """Create a collection and return its tenant-scoped handle."""
         active_tenant = self._tenant(tenant)
         self._create_collection(
             active_tenant,
@@ -58,10 +62,12 @@ class BaseClient:
         return self.collection(name, tenant=active_tenant)
 
     def collection(self, name: str, *, tenant: str | None = None) -> Collection:
+        """Return a handle for an existing collection."""
         self._ensure_open()
         return Collection(self, self._tenant(tenant), name)
 
     def list_collections(self, *, tenant: str | None = None) -> list[Collection]:
+        """List collection handles for a tenant."""
         active_tenant = self._tenant(tenant)
         return [
             Collection(self, active_tenant, str(item["name"]))
@@ -69,18 +75,23 @@ class BaseClient:
         ]
 
     def list_tenants(self) -> list[str]:
+        """List tenants visible to this client."""
         return self._list_tenants()
 
     def embedders(self, *, tenant: str | None = None) -> JsonMap:
+        """Return the configured embedders for a tenant."""
         return self._embedders(self._tenant(tenant))
 
     def delete_collection(self, name: str, *, tenant: str | None = None) -> JsonMap:
+        """Delete a collection and return the server response."""
         return self._delete_collection(self._tenant(tenant), name)
 
     def dump_archive(self, path: str | os.PathLike[str] | None = None) -> Any:
+        """Return an archive, or write it to ``path`` and return that path."""
         return self._dump_archive(path)
 
     def restore_archive(self, archive_bytes: bytes) -> JsonMap:
+        """Restore an archive payload and return the server response."""
         return self._restore_archive(archive_bytes)
 
     def _create_collection(
@@ -223,18 +234,21 @@ class BaseClient:
 
 
 class Collection:
-    """Handle for a tenant-scoped collection."""
+    """Handle for one tenant-scoped PaveDB collection."""
 
     def __init__(self, client: BaseClient, tenant: str, name: str) -> None:
+        """Create a handle for an existing tenant-scoped collection."""
         self.client = client
         self.tenant = tenant
         self.name = name
 
     def __enter__(self) -> Collection:
+        """Return this handle after checking that its client remains open."""
         self.client._ensure_open()
         return self
 
     def __exit__(self, *_exc: object) -> None:
+        """Leave a collection context without closing its client."""
         return None
 
     def ingest(
@@ -245,6 +259,7 @@ class Collection:
         metadata: Metadata | None = None,
         csv_options: Mapping[str, Any] | None = None,
     ) -> JsonMap:
+        """Upload a document file to this collection."""
         return self.client._ingest(
             self.tenant,
             self.name,
@@ -262,6 +277,7 @@ class Collection:
         docid: str | None = None,
         metadata: Metadata | None = None,
     ) -> JsonMap:
+        """Add text or a precomputed vector to this collection."""
         return self.client._add(
             self.tenant,
             self.name,
@@ -272,6 +288,7 @@ class Collection:
         )
 
     def add_many(self, documents: list[object]) -> JsonMap:
+        """Add a batch of text or vector documents to this collection."""
         return self.client._add_many(self.tenant, self.name, documents)
 
     def search(
@@ -283,6 +300,7 @@ class Collection:
         filters: FilterSpec | None = None,
         include_common: bool | None = None,
     ) -> list[JsonMap]:
+        """Search this collection by text or a precomputed vector."""
         return self.client._search(
             self.tenant,
             self.name,
@@ -294,41 +312,53 @@ class Collection:
         )
 
     def get(self, docid: str) -> JsonMap:
+        """Return one document by its document ID."""
         return self.client._get_document(self.tenant, self.name, docid)
 
     def list_documents(self) -> list[JsonMap]:
+        """List documents in this collection."""
         return self.client._list_documents(self.tenant, self.name)
 
     def delete(self, docid: str) -> JsonMap:
+        """Delete one document by its document ID."""
         return self.client._delete_document(self.tenant, self.name, docid)
 
     def detail(self) -> JsonMap:
+        """Return this collection's metadata and summary."""
         return self.client._collection_detail(self.tenant, self.name)
 
     def list_chunks(self, docid: str) -> list[JsonMap]:
+        """List indexed chunks for a document."""
         return self.client._list_chunks(self.tenant, self.name, docid)
 
     def get_chunk(self, rid: str) -> JsonMap:
+        """Return one indexed chunk by its record ID."""
         return self.client._get_chunk(self.tenant, self.name, rid)
 
     def get_chunk_content(self, rid: str) -> JsonMap:
+        """Return the raw content and content type for one chunk."""
         return self.client._get_chunk_content(self.tenant, self.name, rid)
 
     def queries(self, limit: int = 50, offset: int = 0) -> list[JsonMap]:
+        """List recorded queries for this collection."""
         return self.client._queries(self.tenant, self.name, limit, offset)
 
     def get_query(self, qid: str) -> JsonMap:
+        """Return one recorded query by its ID."""
         return self.client._get_query(self.tenant, self.name, qid)
 
     def replay(self, qid: str) -> list[JsonMap]:
+        """Replay a recorded query and return its current matches."""
         return self.client._replay(self.tenant, self.name, qid)
 
     def rename(self, new_name: str) -> Collection:
+        """Rename this collection and return the same handle."""
         self.client._rename(self.tenant, self.name, new_name)
         self.name = new_name
         return self
 
     def update(self, *, display_name: str) -> JsonMap:
+        """Update this collection's display name."""
         return self.client._update_collection(
             self.tenant,
             self.name,
