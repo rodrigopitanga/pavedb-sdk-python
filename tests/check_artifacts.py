@@ -10,12 +10,7 @@ import tarfile
 import zipfile
 from pathlib import Path
 
-EXPECTED = (
-    "examples/LICENSE",
-    "examples/data/ks3-computing.sample.csv",
-    "examples/1-intuition/README.md",
-    "examples/8-evaluation/evaluation.py",
-)
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def members(path: Path) -> set[str]:
@@ -26,6 +21,17 @@ def members(path: Path) -> set[str]:
         return set(archive.getnames())
 
 
+def expected_members() -> list[str]:
+    return [
+        path.relative_to(ROOT).as_posix()
+        for path in (ROOT / "examples").rglob("*")
+        if path.is_file()
+        and path.suffix != ".zip"
+        and "__pycache__" not in path.parts
+        and "lattice-data" not in path.parts
+    ]
+
+
 def main(paths: list[str]) -> None:
     for raw_path in paths:
         path = Path(raw_path)
@@ -34,7 +40,7 @@ def main(paths: list[str]) -> None:
             assert not any(name.startswith("examples/") for name in names), path
             continue
         root = next(name.split("/", 1)[0] for name in names if "/" in name)
-        missing = [item for item in EXPECTED if f"{root}/{item}" not in names]
+        missing = [item for item in expected_members() if f"{root}/{item}" not in names]
         assert not missing, f"{path}: missing {', '.join(missing)}"
     print("Artifact contents are correct.")
 
