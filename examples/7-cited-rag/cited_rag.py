@@ -16,7 +16,6 @@ from shared.lattice import seed
 class Evidence:
     code: str
     text: str
-    rid: str
 
 
 def citations_not_in(evidence: list[Evidence], citations: list[str]) -> list[str]:
@@ -33,7 +32,7 @@ def main() -> None:
                 filters={"level": "key-stage-3", "jurisdiction": "england"},
             )
     evidence = [
-        Evidence(hit["meta"]["code"], hit["text"], hit["id"])
+        Evidence(hit["meta"]["code"], hit["text"])
         for hit in matches
     ]
     for item in evidence:
