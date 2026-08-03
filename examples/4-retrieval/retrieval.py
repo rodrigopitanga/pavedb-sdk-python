@@ -10,7 +10,6 @@ from typing import Any
 
 class Retrieval:
     def __init__(self, db: Any) -> None:
-        self._db = db
         self.standards = db.collection("standards")
 
     def search(self, query: str, k: int = 8, filters: dict | None = None) -> list[dict]:
