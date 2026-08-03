@@ -1,4 +1,7 @@
 recursive-include pavesdk/examples *
 recursive-include demo *
 recursive-include docs *.md *.py
+recursive-include examples *
+prune examples/2-ingest/lattice-data
+global-exclude *.zip
 global-exclude __pycache__ *.py[cod]

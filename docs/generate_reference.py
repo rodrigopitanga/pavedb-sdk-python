@@ -225,6 +225,25 @@ def example_modules() -> list[str]:
     return modules
 
 
+def book_examples() -> list[tuple[Path, str]]:
+    examples = []
+    for readme in sorted((ROOT / "examples").glob("[0-9]-*/README.md")):
+        commands = [
+            line for line in readme.read_text(encoding="utf-8").splitlines()
+            if line.startswith("PYTHONPATH=examples python ")
+        ]
+        if len(commands) != 1:
+            raise ValueError(f"{readme.relative_to(ROOT)} must document one command")
+        command = commands[0]
+        source = ROOT / command.removeprefix("PYTHONPATH=examples python ")
+        if not source.is_file():
+            raise ValueError(
+                f"documented example does not exist: {source.relative_to(ROOT)}"
+            )
+        examples.append((readme, command))
+    return examples
+
+
 def examples_reference() -> str:
     lines = [
         "<!-- (C) 2026 Rodrigo Rodrigues da Silva <rodrigo@flowlexi.com> -->",
@@ -246,6 +265,20 @@ def examples_reference() -> str:
                 "",
                 "```bash",
                 f"python -m {module}",
+                "```",
+                "",
+            ]
+        )
+    lines.extend(["## Book companion programs", ""])
+    for readme, command in book_examples():
+        lines.extend(
+            [
+                f"### `{readme.parent.name}`",
+                "",
+                f"Guide: `{readme.relative_to(ROOT)}`",
+                "",
+                "```bash",
+                command,
                 "```",
                 "",
             ]

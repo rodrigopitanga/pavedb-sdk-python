@@ -65,6 +65,10 @@ python -m pavesdk.examples.http_search
 python -m pavesdk.examples.observability
 ```
 
+The source distribution also includes the book companion programs under
+`examples/`. They are intentionally not installed in the wheel; start with
+`examples/1-intuition/README.md` after installing `pavedb` alongside the SDK.
+
 The SDK checkout also includes `demo/20k_leagues.txt`, which the examples use
 via a hardcoded relative path.
 

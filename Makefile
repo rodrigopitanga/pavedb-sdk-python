@@ -123,6 +123,7 @@ build: docs-check
 	rm -rf $(DIST_DIR) $(BUILD_DIR)
 	$(PYTHON_BIN) -m build --sdist --wheel --outdir $(DIST_DIR) --no-isolation
 	$(PYTHON_BIN) -m twine check $(DIST_DIR)/*
+	$(PYTHON_BIN) tests/check_artifacts.py $(DIST_DIR)/*
 	@echo "Built $(PKG_NAME) $(VERSION):"
 	@ls -1 $(DIST_DIR)
 

@@ -1,0 +1,7 @@
+code,topic,level,jurisdiction,source,section,text
+KS3-CS-01,computing,key-stage-3,england,national-curriculum,programming,"Pupils should be taught to design and write programs that solve problems, using selection and iteration where appropriate."
+KS3-CS-02,computing,key-stage-3,england,national-curriculum,programming,"Pupils should understand how stored program computers execute instructions in sequence, and how variables hold values that change as a program runs."
+KS3-CS-03,computing,key-stage-3,england,national-curriculum,algorithms,"Pupils should be taught to design, evaluate and refine algorithms, comparing alternatives for the same problem and reasoning about correctness."
+KS3-CS-04,computing,key-stage-3,england,national-curriculum,data,"Pupils should understand how numbers, text, sound and images can be represented and manipulated digitally as sequences of bits."
+KS3-CS-08,computing,key-stage-3,england,national-curriculum,architecture,"Pupils should be taught how data is represented in binary, and how to convert between binary and decimal whole numbers."
+KS3-CS-09,computing,key-stage-3,england,national-curriculum,architecture,"Pupils should understand the role of the CPU, memory and storage in a computer system, and how they interact."
