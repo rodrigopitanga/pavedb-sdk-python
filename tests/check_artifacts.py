@@ -1,7 +1,7 @@
 # (C) 2026 Rodrigo Rodrigues da Silva <rodrigo@flowlexi.com>
 # SPDX-License-Identifier: Apache-2.0
 
-"""Assert that book examples are shipped in the sdist, not the wheel."""
+"""Assert the generated examples index and book programs ship only in the sdist."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ def members(path: Path) -> set[str]:
 
 
 def expected_members() -> list[str]:
-    return [
+    return ["docs/reference/examples.md"] + [
         path.relative_to(ROOT).as_posix()
         for path in (ROOT / "examples").rglob("*")
         if path.is_file()
