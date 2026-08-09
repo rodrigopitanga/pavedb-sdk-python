@@ -18,7 +18,11 @@ DOCID = "ks3-computing"
 def rows() -> list[dict[str, Any]]:
     with DATA.open(newline="", encoding="utf-8") as source:
         return [
-            {"text": row.pop("text"), "docid": DOCID, "metadata": row}
+            {
+                "text": row.pop("text"),
+                "docid": f"{DOCID}-{row['code']}",
+                "metadata": row,
+            }
             for row in csv.DictReader(source)
         ]
 
