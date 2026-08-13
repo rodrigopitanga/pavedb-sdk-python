@@ -86,20 +86,6 @@ build-package:
       - dist/
   <<: *version-tag
 
-publish-gitlab-pypi:
-  image: python:3.12
-  stage: release
-  needs:
-    - job: build-package
-      artifacts: true
-  script:
-    - python -m pip install --upgrade twine
-    - |
-      registry_url="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/pypi"
-      python -m twine upload --repository-url "$registry_url" \
-        -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" dist/*
-  <<: *version-tag
-
 release-notes:
   image: alpine:3.20
   stage: release
@@ -130,7 +116,6 @@ announce-gitlab:
   needs:
     - job: mirror-github
     - job: publish-pypi
-    - job: publish-gitlab-pypi
     - job: release-notes
       artifacts: true
   script:
@@ -145,7 +130,6 @@ announce-github:
   needs:
     - job: mirror-github
     - job: publish-pypi
-    - job: publish-gitlab-pypi
     - job: release-notes
       artifacts: true
   before_script:
