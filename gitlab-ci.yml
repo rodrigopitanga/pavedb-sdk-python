@@ -96,7 +96,7 @@ publish-gitlab-pypi:
     - python -m pip install --upgrade twine
     - |
       registry_url="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/pypi"
-      python -m twine upload --skip-existing --repository-url "$registry_url" \
+      python -m twine upload --repository-url "$registry_url" \
         -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" dist/*
   <<: *version-tag
 
