@@ -1,11 +1,13 @@
 # (C) 2026 Rodrigo Rodrigues da Silva <rodrigo@flowlexi.com>
 # SPDX-License-Identifier: Apache-2.0
 
+# The GitHub mirror runs last, after tests, publishing and the GitLab
+# release, so GitHub never sees a ref whose pipeline failed.
 stages:
-  - mirror
   - test
   - release
   - announce
+  - mirror
 
 variables:
   GITHUB_MIRROR_REPO: rodrigopitanga/pavedb-sdk-python
@@ -128,7 +130,6 @@ announce-gitlab:
   variables:
     GLAB_ENABLE_CI_AUTOLOGIN: "true"
   needs:
-    - job: mirror-github
     - job: publish-pypi
     - job: publish-gitlab-pypi
     - job: release-notes
@@ -141,7 +142,7 @@ announce-gitlab:
 
 announce-github:
   image: alpine:3.20
-  stage: announce
+  stage: mirror
   needs:
     - job: mirror-github
     - job: publish-pypi
