@@ -325,3 +325,17 @@ with connect("http://localhost:8086", api_key="super-sekret") as db:
     saved_path = db.dump_archive("pavedb-data.zip")
     db.restore_archive(Path(saved_path).read_bytes())
 ```
+
+One collection moves on its own. `restore_archive` on a new name creates the
+collection; `replace=True` rolls an existing one back to the snapshot:
+
+```python
+with connect("http://localhost:8086", api_key="tenant-key", tenant="demo") as db:
+    books = db.collection("books")
+    snapshot = books.dump_archive()
+    db.collection("books-copy").restore_archive(snapshot)
+    books.restore_archive(snapshot, replace=True)
+
+    job = books.reindex(embed_model="sentence-transformers/all-MiniLM-L6-v2")
+    print(books.reindex_job(job["job_id"])["status"])
+```

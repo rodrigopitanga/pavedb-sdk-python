@@ -194,6 +194,7 @@ class HttpClient(BaseClient):
         embedder_type: str | None,
         embed_model: str | None,
         embedder_config: Mapping[str, Any] | None,
+        **options: Any,
     ) -> JsonMap:
         body = {
             "display_name": display_name,
@@ -201,6 +202,7 @@ class HttpClient(BaseClient):
             "embed_model": embed_model,
             "embedder_config": dict(embedder_config)
             if embedder_config is not None else None,
+            **options,
         }
         payload = {key: value for key, value in body.items() if value is not None}
         return self._json(
@@ -243,6 +245,65 @@ class HttpClient(BaseClient):
             "/admin/archive",
             files={"file": ("archive.zip", archive_bytes, "application/zip")},
         )
+
+    def _dump_collection_archive(
+        self,
+        tenant: str,
+        collection: str,
+        path: str | os.PathLike[str] | None = None,
+    ) -> bytes | str:
+        response = self._request(
+            "GET",
+            f"/collections/{segment(tenant)}/{segment(collection)}/archive",
+        )
+        if path is None:
+            return response.content
+        archive_path = os.fspath(path)
+        Path(archive_path).write_bytes(response.content)
+        return archive_path
+
+    def _restore_collection_archive(
+        self,
+        tenant: str,
+        collection: str,
+        archive_bytes: bytes,
+        *,
+        replace: bool = False,
+    ) -> JsonMap:
+        return self._json(
+            "PUT" if replace else "POST",
+            f"/collections/{segment(tenant)}/{segment(collection)}/archive",
+            files={"file": ("collection.zip", archive_bytes, "application/zip")},
+        )
+
+    def _reindex(self, tenant: str, collection: str, **target: Any) -> JsonMap:
+        return self._json(
+            "POST",
+            f"/collections/{segment(tenant)}/{segment(collection)}/reindex",
+            json=target,
+        )
+
+    def _reindex_job(self, tenant: str, collection: str, job_id: str) -> JsonMap:
+        return self._json(
+            "GET",
+            f"/collections/{segment(tenant)}/{segment(collection)}"
+            f"/reindex/{segment(job_id)}",
+        )
+
+    def _cancel_reindex(
+        self, tenant: str, collection: str, job_id: str
+    ) -> JsonMap:
+        return self._json(
+            "DELETE",
+            f"/collections/{segment(tenant)}/{segment(collection)}"
+            f"/reindex/{segment(job_id)}",
+        )
+
+    def _pause_reindex(self, job_id: str) -> JsonMap:
+        return self._json("POST", f"/admin/reindex/{segment(job_id)}/pause")
+
+    def _resume_reindex(self, job_id: str) -> JsonMap:
+        return self._json("POST", f"/admin/reindex/{segment(job_id)}/resume")
 
     def _ingest(
         self,
@@ -326,8 +387,9 @@ class HttpClient(BaseClient):
         vector: list[float] | None = None,
         filters: FilterSpec | None = None,
         include_common: bool | None = None,
+        **options: Any,
     ) -> list[JsonMap]:
-        body: JsonMap = {"q": q, "v": vector, "k": k}
+        body: JsonMap = {"q": q, "v": vector, "k": k, **options}
         body = {key: value for key, value in body.items() if value is not None}
         if filters is not None:
             body["filters"] = filters

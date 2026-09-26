@@ -14,6 +14,12 @@ Metadata = dict[str, Any]
 FilterSpec = dict[str, Any]
 
 
+def _set(**options: Any) -> JsonMap:
+    """The options a caller actually set, so providers that predate one are
+    not handed it."""
+    return {key: value for key, value in options.items() if value is not None}
+
+
 class BaseClient:
     """Transport-neutral client surface shared by HTTP and local providers."""
 
@@ -48,6 +54,10 @@ class BaseClient:
         embedder_type: str | None = None,
         embed_model: str | None = None,
         embedder_config: Mapping[str, Any] | None = None,
+        embedder: str | None = None,
+        search_mode: str | None = None,
+        chunking: Mapping[str, Any] | None = None,
+        priority_key: str | None = None,
     ) -> Collection:
         """Create a collection and return its tenant-scoped handle."""
         active_tenant = self._tenant(tenant)
@@ -58,6 +68,12 @@ class BaseClient:
             embedder_type=embedder_type,
             embed_model=embed_model,
             embedder_config=embedder_config,
+            **_set(
+                embedder=embedder,
+                search_mode=search_mode,
+                chunking=chunking,
+                priority_key=priority_key,
+            ),
         )
         return self.collection(name, tenant=active_tenant)
 
@@ -94,6 +110,14 @@ class BaseClient:
         """Restore an archive payload and return the server response."""
         return self._restore_archive(archive_bytes)
 
+    def pause_reindex(self, job_id: str) -> JsonMap:
+        """Pause a running reindex job (admin) and return the job."""
+        return self._pause_reindex(job_id)
+
+    def resume_reindex(self, job_id: str) -> JsonMap:
+        """Resume a paused reindex job (admin) and return the job."""
+        return self._resume_reindex(job_id)
+
     def _create_collection(
         self,
         tenant: str,
@@ -103,6 +127,7 @@ class BaseClient:
         embedder_type: str | None,
         embed_model: str | None,
         embedder_config: Mapping[str, Any] | None,
+        **options: Any,
     ) -> JsonMap:
         raise NotImplementedError
 
@@ -122,6 +147,46 @@ class BaseClient:
         raise NotImplementedError
 
     def _restore_archive(self, archive_bytes: bytes) -> JsonMap:
+        raise NotImplementedError
+
+    def _dump_collection_archive(
+        self,
+        tenant: str,
+        collection: str,
+        path: str | os.PathLike[str] | None = None,
+    ) -> Any:
+        raise NotImplementedError
+
+    def _restore_collection_archive(
+        self,
+        tenant: str,
+        collection: str,
+        archive_bytes: bytes,
+        *,
+        replace: bool = False,
+    ) -> JsonMap:
+        raise NotImplementedError
+
+    def _reindex(
+        self,
+        tenant: str,
+        collection: str,
+        **target: Any,
+    ) -> JsonMap:
+        raise NotImplementedError
+
+    def _reindex_job(self, tenant: str, collection: str, job_id: str) -> JsonMap:
+        raise NotImplementedError
+
+    def _cancel_reindex(
+        self, tenant: str, collection: str, job_id: str
+    ) -> JsonMap:
+        raise NotImplementedError
+
+    def _pause_reindex(self, job_id: str) -> JsonMap:
+        raise NotImplementedError
+
+    def _resume_reindex(self, job_id: str) -> JsonMap:
         raise NotImplementedError
 
     def _ingest(
@@ -166,6 +231,7 @@ class BaseClient:
         vector: list[float] | None = None,
         filters: FilterSpec | None = None,
         include_common: bool | None = None,
+        **options: Any,
     ) -> list[JsonMap]:
         raise NotImplementedError
 
@@ -299,6 +365,8 @@ class Collection:
         vector: list[float] | None = None,
         filters: FilterSpec | None = None,
         include_common: bool | None = None,
+        mode: str | None = None,
+        content_filter: Mapping[str, Any] | None = None,
     ) -> list[JsonMap]:
         """Search this collection by text or a precomputed vector."""
         return self.client._search(
@@ -309,6 +377,7 @@ class Collection:
             vector=vector,
             filters=filters,
             include_common=include_common,
+            **_set(mode=mode, content_filter=content_filter),
         )
 
     def get(self, docid: str) -> JsonMap:
@@ -350,6 +419,45 @@ class Collection:
     def replay(self, qid: str) -> list[JsonMap]:
         """Replay a recorded query and return its current matches."""
         return self.client._replay(self.tenant, self.name, qid)
+
+    def dump_archive(self, path: str | os.PathLike[str] | None = None) -> Any:
+        """Return this collection's archive, or write it to ``path``."""
+        return self.client._dump_collection_archive(self.tenant, self.name, path)
+
+    def restore_archive(
+        self, archive_bytes: bytes, *, replace: bool = False
+    ) -> JsonMap:
+        """Restore an archive as this new collection, or over it with
+        ``replace=True``."""
+        return self.client._restore_collection_archive(
+            self.tenant, self.name, archive_bytes, replace=replace
+        )
+
+    def reindex(
+        self,
+        *,
+        embedder_type: str | None = None,
+        embed_model: str | None = None,
+        embedder_config: Mapping[str, Any] | None = None,
+    ) -> JsonMap:
+        """Start rebuilding this collection into another embedder space."""
+        return self.client._reindex(
+            self.tenant,
+            self.name,
+            **_set(
+                embedder_type=embedder_type,
+                embed_model=embed_model,
+                embedder_config=embedder_config,
+            ),
+        )
+
+    def reindex_job(self, job_id: str) -> JsonMap:
+        """Return one of this collection's reindex jobs."""
+        return self.client._reindex_job(self.tenant, self.name, job_id)
+
+    def cancel_reindex(self, job_id: str) -> JsonMap:
+        """Cancel one of this collection's reindex jobs."""
+        return self.client._cancel_reindex(self.tenant, self.name, job_id)
 
     def rename(self, new_name: str) -> Collection:
         """Rename this collection and return the same handle."""

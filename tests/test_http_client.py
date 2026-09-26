@@ -283,3 +283,70 @@ def test_collection_vector_methods_map_to_existing_payloads():
             (vector, "vec-3"),
         ])['succeeded'] == 2
         assert collection.search(vector=vector, k=2) == [{"id": "vec-1"}]
+
+
+def test_pavedb_097_surface_maps_to_http_endpoints():
+    seen = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        seen.append((request.method, path))
+        if path == "/v1/collections/acme/books" and request.method == "POST":
+            assert json.loads(request.content) == {
+                "search_mode": "hybrid",
+                "chunking": {"strategy": "none"},
+                "priority_key": "rank",
+            }
+            return httpx.Response(201, json={"ok": True, "name": "books"})
+        if path.endswith("/search"):
+            assert json.loads(request.content) == {
+                "q": "nemo",
+                "k": 3,
+                "mode": "boost",
+                "content_filter": {"op": "phrase", "value": "captain nemo"},
+            }
+            return httpx.Response(200, json={"ok": True, "matches": []})
+        if path.endswith("/archive") and request.method == "GET":
+            return httpx.Response(200, content=b"zip")
+        if path.endswith("/archive"):
+            assert b"zip" in request.content
+            return httpx.Response(200, json={"ok": True})
+        if path.endswith("/reindex"):
+            assert json.loads(request.content) == {"embed_model": "m2"}
+            return httpx.Response(202, json={"ok": True, "job_id": "j1"})
+        return httpx.Response(200, json={"ok": True, "job_id": "j1"})
+
+    with _client(handler) as db:
+        books = db.create_collection(
+            "books",
+            tenant="acme",
+            search_mode="hybrid",
+            chunking={"strategy": "none"},
+            priority_key="rank",
+        )
+        assert books.search(
+            "nemo",
+            k=3,
+            mode="boost",
+            content_filter={"op": "phrase", "value": "captain nemo"},
+        ) == []
+        archive = books.dump_archive()
+        assert archive == b"zip"
+        db.collection("copy", tenant="acme").restore_archive(archive)
+        books.restore_archive(archive, replace=True)
+        assert books.reindex(embed_model="m2")["job_id"] == "j1"
+        books.reindex_job("j1")
+        books.cancel_reindex("j1")
+        db.pause_reindex("j1")
+        db.resume_reindex("j1")
+
+    assert seen[2:] == [
+        ("GET", "/v1/collections/acme/books/archive"),
+        ("POST", "/v1/collections/acme/copy/archive"),
+        ("PUT", "/v1/collections/acme/books/archive"),
+        ("POST", "/v1/collections/acme/books/reindex"),
+        ("GET", "/v1/collections/acme/books/reindex/j1"),
+        ("DELETE", "/v1/collections/acme/books/reindex/j1"),
+        ("POST", "/v1/admin/reindex/j1/pause"),
+        ("POST", "/v1/admin/reindex/j1/resume"),
+    ]

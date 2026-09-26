@@ -30,6 +30,10 @@ create_collection(
     embedder_type: str | None = None,
     embed_model: str | None = None,
     embedder_config: Mapping[str, Any] | None = None,
+    embedder: str | None = None,
+    search_mode: str | None = None,
+    chunking: Mapping[str, Any] | None = None,
+    priority_key: str | None = None,
 ) -> Collection
 ```
 
@@ -91,6 +95,22 @@ restore_archive(self, archive_bytes: bytes) -> JsonMap
 
 Restore an archive payload and return the server response.
 
+### `BaseClient.pause_reindex`
+
+```python
+pause_reindex(self, job_id: str) -> JsonMap
+```
+
+Pause a running reindex job (admin) and return the job.
+
+### `BaseClient.resume_reindex`
+
+```python
+resume_reindex(self, job_id: str) -> JsonMap
+```
+
+Resume a paused reindex job (admin) and return the job.
+
 ## `pavesdk.Collection`
 
 Handle for one tenant-scoped PaveDB collection.
@@ -150,6 +170,8 @@ search(
     vector: list[float] | None = None,
     filters: FilterSpec | None = None,
     include_common: bool | None = None,
+    mode: str | None = None,
+    content_filter: Mapping[str, Any] | None = None,
 ) -> list[JsonMap]
 ```
 
@@ -234,6 +256,52 @@ replay(self, qid: str) -> list[JsonMap]
 ```
 
 Replay a recorded query and return its current matches.
+
+### `Collection.dump_archive`
+
+```python
+dump_archive(self, path: str | os.PathLike[str] | None = None) -> Any
+```
+
+Return this collection's archive, or write it to ``path``.
+
+### `Collection.restore_archive`
+
+```python
+restore_archive(self, archive_bytes: bytes, *, replace: bool = False) -> JsonMap
+```
+
+Restore an archive as this new collection, or over it with ``replace=True``.
+
+### `Collection.reindex`
+
+```python
+reindex(
+    self,
+    *,
+    embedder_type: str | None = None,
+    embed_model: str | None = None,
+    embedder_config: Mapping[str, Any] | None = None,
+) -> JsonMap
+```
+
+Start rebuilding this collection into another embedder space.
+
+### `Collection.reindex_job`
+
+```python
+reindex_job(self, job_id: str) -> JsonMap
+```
+
+Return one of this collection's reindex jobs.
+
+### `Collection.cancel_reindex`
+
+```python
+cancel_reindex(self, job_id: str) -> JsonMap
+```
+
+Cancel one of this collection's reindex jobs.
 
 ### `Collection.rename`
 

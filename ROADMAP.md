@@ -9,9 +9,9 @@ tracked here. Keys refer to the core PaveDB roadmap.
 
 ## Queue
 
-- PaveDB 0.9.7 collection archive: dump, restore as new and restore over an
-  existing collection (P1-54).
-- PaveDB 0.9.7 reindex jobs: start, get, cancel, pause/resume (P1-55).
-- `create_collection` options: add the 0.9.7 fields `embedder`,
-  `search_mode`, `chunking`, `priority_key`.
-- `search` options: add the 0.9.7 fields `mode` and `content_filter`.
+- ~~PaveDB 0.9.7 collection archive: dump, restore as new and restore over an
+  existing collection (P1-54).~~
+- ~~PaveDB 0.9.7 reindex jobs: start, get, cancel, pause/resume (P1-55).~~
+- ~~`create_collection` options: add the 0.9.7 fields `embedder`,
+  `search_mode`, `chunking`, `priority_key`.~~
+- ~~`search` options: add the 0.9.7 fields `mode` and `content_filter`.~~
