@@ -219,6 +219,44 @@ class HttpClient(BaseClient):
         data = self._json("GET", "/admin/tenants")
         return list(data["tenants"])
 
+    def _create_tenant(self, tenant: str, **options: Any) -> JsonMap:
+        return self._json(
+            "POST", '/admin/tenants',
+            json={**options, "tenant": tenant},
+        )
+
+    def _get_tenant(self, tenant: str) -> JsonMap:
+        return self._json(
+            "GET", f'/admin/tenants/{segment(tenant)}',
+        )
+
+    def _update_tenant(self, tenant: str, **changes: Any) -> JsonMap:
+        return self._json(
+            "PATCH", f'/admin/tenants/{segment(tenant)}',
+            json=changes,
+        )
+
+    def _delete_tenant(self, tenant: str) -> JsonMap:
+        return self._json(
+            "DELETE", f'/admin/tenants/{segment(tenant)}',
+        )
+
+    def _list_tenant_keys(self, tenant: str) -> JsonMap:
+        return self._json(
+            "GET", f'/admin/tenants/{segment(tenant)}/keys',
+        )
+
+    def _create_tenant_key(self, tenant: str, *, label: str = "primary") -> JsonMap:
+        return self._json(
+            "POST", f'/admin/tenants/{segment(tenant)}/keys',
+            json={"label": label},
+        )
+
+    def _revoke_tenant_key(self, tenant: str, key_id: str) -> JsonMap:
+        return self._json(
+            "DELETE", f'/admin/tenants/{segment(tenant)}/keys/{segment(key_id)}',
+        )
+
     def _embedders(self, tenant: str) -> JsonMap:
         return self._json("GET", f"/embedders/{segment(tenant)}")
 

@@ -63,6 +63,62 @@ list_tenants(self) -> list[str]
 
 List tenants visible to this client.
 
+### `BaseClient.create_tenant`
+
+```python
+create_tenant(self, tenant: str, **options: Any) -> JsonMap
+```
+
+Provision a tenant; an initial plaintext key is returned once.
+
+### `BaseClient.get_tenant`
+
+```python
+get_tenant(self, tenant: str) -> JsonMap
+```
+
+Return the tenant profile and effective limits.
+
+### `BaseClient.update_tenant`
+
+```python
+update_tenant(self, tenant: str, **changes: Any) -> JsonMap
+```
+
+Patch supplied profile fields and nullable quota overrides.
+
+### `BaseClient.delete_tenant`
+
+```python
+delete_tenant(self, tenant: str) -> JsonMap
+```
+
+Delete an empty tenant and revoke all of its keys.
+
+### `BaseClient.list_tenant_keys`
+
+```python
+list_tenant_keys(self, tenant: str) -> JsonMap
+```
+
+List public key metadata, including revoked keys.
+
+### `BaseClient.create_tenant_key`
+
+```python
+create_tenant_key(self, tenant: str, *, label: str = 'primary') -> JsonMap
+```
+
+Generate a tenant key and return its plaintext once.
+
+### `BaseClient.revoke_tenant_key`
+
+```python
+revoke_tenant_key(self, tenant: str, key_id: str) -> JsonMap
+```
+
+Revoke a tenant key by its public ID.
+
 ### `BaseClient.embedders`
 
 ```python

@@ -94,6 +94,41 @@ class BaseClient:
         """List tenants visible to this client."""
         return self._list_tenants()
 
+    def create_tenant(self, tenant: str, **options: Any) -> JsonMap:
+        """Provision a tenant; an initial plaintext key is returned once."""
+        self._ensure_open()
+        return self._create_tenant(tenant, **options)
+
+    def get_tenant(self, tenant: str) -> JsonMap:
+        """Return the tenant profile and effective limits."""
+        self._ensure_open()
+        return self._get_tenant(tenant)
+
+    def update_tenant(self, tenant: str, **changes: Any) -> JsonMap:
+        """Patch supplied profile fields and nullable quota overrides."""
+        self._ensure_open()
+        return self._update_tenant(tenant, **changes)
+
+    def delete_tenant(self, tenant: str) -> JsonMap:
+        """Delete an empty tenant and revoke all of its keys."""
+        self._ensure_open()
+        return self._delete_tenant(tenant)
+
+    def list_tenant_keys(self, tenant: str) -> JsonMap:
+        """List public key metadata, including revoked keys."""
+        self._ensure_open()
+        return self._list_tenant_keys(tenant)
+
+    def create_tenant_key(self, tenant: str, *, label: str = "primary") -> JsonMap:
+        """Generate a tenant key and return its plaintext once."""
+        self._ensure_open()
+        return self._create_tenant_key(tenant, label=label)
+
+    def revoke_tenant_key(self, tenant: str, key_id: str) -> JsonMap:
+        """Revoke a tenant key by its public ID."""
+        self._ensure_open()
+        return self._revoke_tenant_key(tenant, key_id)
+
     def embedders(self, *, tenant: str | None = None) -> JsonMap:
         """Return the configured embedders for a tenant."""
         return self._embedders(self._tenant(tenant))
@@ -135,6 +170,27 @@ class BaseClient:
         raise NotImplementedError
 
     def _list_tenants(self) -> list[str]:
+        raise NotImplementedError
+
+    def _create_tenant(self, tenant: str, **options: Any) -> JsonMap:
+        raise NotImplementedError
+
+    def _get_tenant(self, tenant: str) -> JsonMap:
+        raise NotImplementedError
+
+    def _update_tenant(self, tenant: str, **changes: Any) -> JsonMap:
+        raise NotImplementedError
+
+    def _delete_tenant(self, tenant: str) -> JsonMap:
+        raise NotImplementedError
+
+    def _list_tenant_keys(self, tenant: str) -> JsonMap:
+        raise NotImplementedError
+
+    def _create_tenant_key(self, tenant: str, *, label: str = "primary") -> JsonMap:
+        raise NotImplementedError
+
+    def _revoke_tenant_key(self, tenant: str, key_id: str) -> JsonMap:
         raise NotImplementedError
 
     def _embedders(self, tenant: str) -> JsonMap:

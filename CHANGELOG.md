@@ -1,6 +1,14 @@
 <!-- (C) 2026 Rodrigo Rodrigues da Silva <rodrigo@flowlexi.com> -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
+## 0.1.6 — Unreleased
+
+### SDK
+- Add tenant provisioning, live quota updates, suspension, and key lifecycle
+  methods for PaveDB 1.0 (P2-19 / P2-38).
+
+---
+
 ## 0.1.5 — 2026-09-26
 
 ### Infrastructure

@@ -350,3 +350,35 @@ def test_pavedb_097_surface_maps_to_http_endpoints():
         ("POST", "/v1/admin/reindex/j1/pause"),
         ("POST", "/v1/admin/reindex/j1/resume"),
     ]
+
+
+def test_tenant_provisioning_contract_preserves_null_limits():
+    seen = []
+
+    def handler(request):
+        seen.append((request.method, request.url.raw_path.decode(),
+                     json.loads(request.content) if request.content else None))
+        return httpx.Response(200, json={"ok": True})
+
+    with _client(handler) as client:
+        client.create_tenant("acme", limits={"max_rpm": 0}, create_key=False)
+        client.get_tenant("acme")
+        client.update_tenant("acme", limits={"max_rpm": None})
+        client.create_tenant_key("acme", label="rotation")
+        client.list_tenant_keys("acme")
+        client.revoke_tenant_key("acme", "key/id")
+        client.delete_tenant("acme")
+    assert [(m, p) for m, p, _ in seen] == [
+        ("POST", "/v1/admin/tenants"),
+        ("GET", "/v1/admin/tenants/acme"),
+        ("PATCH", "/v1/admin/tenants/acme"),
+        ("POST", "/v1/admin/tenants/acme/keys"),
+        ("GET", "/v1/admin/tenants/acme/keys"),
+        ("DELETE", "/v1/admin/tenants/acme/keys/key%2Fid"),
+        ("DELETE", "/v1/admin/tenants/acme"),
+    ]
+    assert seen[0][2] == {
+        "tenant": "acme", "limits": {"max_rpm": 0}, "create_key": False,
+    }
+    assert seen[2][2] == {"limits": {"max_rpm": None}}
+    assert seen[3][2] == {"label": "rotation"}

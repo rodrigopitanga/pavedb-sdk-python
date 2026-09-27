@@ -24,6 +24,13 @@ SDK source lives on
 [GitLab](https://gitlab.com/flowlexi/pavedb-sdk-python) and
 [GitHub](https://github.com/rodrigopitanga/pavedb-sdk-python).
 
+## Tenant administration (PaveDB 1.0)
+
+An admin client can `create_tenant`, `get_tenant`, `update_tenant`, and
+`delete_tenant`, plus `create_tenant_key`, `list_tenant_keys`, and
+`revoke_tenant_key`. Generated key plaintext is returned only at creation.
+Tenant quota overrides accept `0` (none), `-1` (unlimited), or `None` (inherit).
+
 ## Install
 
 ```bash

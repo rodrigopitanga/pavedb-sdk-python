@@ -15,3 +15,5 @@ tracked here. Keys refer to the core PaveDB roadmap.
 - ~~`create_collection` options: add the 0.9.7 fields `embedder`,
   `search_mode`, `chunking`, `priority_key`.~~
 - ~~`search` options: add the 0.9.7 fields `mode` and `content_filter`.~~
+
+- ~~PaveDB 1.0 tenant provisioning and key lifecycle (P2-19 / P2-38).~~
